@@ -2,17 +2,11 @@ package config
 
 import (
 	"os"
-	"time"
 
 	"github.com/joeshaw/envdecode"
 )
 
 const (
-	// TemplateDir stores the name of the directory that contains templates
-	TemplateDir = "templates"
-
-	// TemplateExt stores the extension used for the template files
-	TemplateExt = ".gohtml"
 
 	// StaticDir stores the name of the directory that will serve static files
 	StaticDir = "static"
@@ -55,16 +49,8 @@ type (
 
 	// HTTPConfig stores HTTP configuration
 	HTTPConfig struct {
-		Hostname     string        `env:"HTTP_HOSTNAME"`
-		Port         uint16        `env:"HTTP_PORT,default=8000"`
-		ReadTimeout  time.Duration `env:"HTTP_READ_TIMEOUT,default=5s"`
-		WriteTimeout time.Duration `env:"HTTP_WRITE_TIMEOUT,default=10s"`
-		IdleTimeout  time.Duration `env:"HTTP_IDLE_TIMEOUT,default=2m"`
-		TLS          struct {
-			Enabled     bool   `env:"HTTP_TLS_ENABLED,default=false"`
-			Certificate string `env:"HTTP_TLS_CERTIFICATE"`
-			Key         string `env:"HTTP_TLS_KEY"`
-		}
+		Hostname string `env:"HTTP_HOSTNAME"`
+		Port     uint16 `env:"HTTP_PORT,default=3000"`
 	}
 
 	// AppConfig stores application configuration
