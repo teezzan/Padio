@@ -23,12 +23,12 @@ func main() {
 	e.GET("/", controller.SayHelloWorld)
 
 	e.GET("/stream", func(c echo.Context) error {
-		f, err := os.Open("../../static/cores.png")
-		
+		f, err := os.Open("../../static/4.mp3")
+
 		if err != nil {
 			return err
 		}
-		return c.Stream(http.StatusOK, "image/png", f)
+		return c.Stream(http.StatusOK, "audio/mpeg", f)
 	})
 
 	e.Logger.Fatal(e.Start(port))
