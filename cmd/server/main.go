@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/teezzan/padio/config"
@@ -16,7 +18,18 @@ func main() {
 	port := fmt.Sprintf(":%d", config.HTTP.Port)
 	e := echo.New()
 
+	e.Static("/audio", "static")
+
 	e.GET("/", controller.SayHelloWorld)
+
+	e.GET("/stream", func(c echo.Context) error {
+		f, err := os.Open("../../static/cores.png")
+		
+		if err != nil {
+			return err
+		}
+		return c.Stream(http.StatusOK, "image/png", f)
+	})
 
 	e.Logger.Fatal(e.Start(port))
 }
