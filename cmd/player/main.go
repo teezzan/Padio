@@ -15,6 +15,10 @@ type Queue struct {
 	playing   chan bool
 }
 
+func (q *Queue) Init() {
+	q.playing = make(chan bool, 200)
+}
+
 func (q *Queue) Add(streamers ...beep.Streamer) {
 	q.streamers = append(q.streamers, streamers...)
 }
@@ -40,7 +44,7 @@ func (q *Queue) Stream(samples [][2]float64) (n int, ok bool) {
 		// the next streamer.
 		if !ok {
 			q.streamers = q.streamers[1:]
-			q.playing <- false
+			// q.playing <- false
 		} else {
 			q.playing <- true
 		}
@@ -53,28 +57,30 @@ func (q *Queue) Stream(samples [][2]float64) (n int, ok bool) {
 func (q *Queue) Err() error {
 	return nil
 }
-func (q *Queue) Status() bool {
-	return q.playing
-}
 
 func main() {
-	done := make(chan bool)
+	// done := make(chan bool, 5)
+	var queue Queue
+	queue.Init()
 
 	sr := beep.SampleRate(44100)
 	speaker.Init(sr, sr.N(time.Second/10))
 
-	var queue Queue
 	// A zero Queue is an empty Queue.
 
 	speaker.Play(beep.Seq(&queue))
 	GetNextAudio(&queue, sr, 3)
 
 	for {
+
 		select {
-		case <-queue.playing:
-			fmt.Println("Done")
-			GetNextAudio(&queue, sr, 2)
-		case <-time.After(time.Second):
+		case i := <-queue.playing:
+			fmt.Println("Done ", i)
+			if !i {
+				GetNextAudio(&queue, sr, 2)
+			}
+		default:
+			fmt.Print("")
 		}
 	}
 }
