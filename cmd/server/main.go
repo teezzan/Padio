@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/teezzan/padio/config"
@@ -22,14 +20,7 @@ func main() {
 
 	e.GET("/", controller.SayHelloWorld)
 
-	e.GET("/stream", func(c echo.Context) error {
-		f, err := os.Open("../../static/4.mp3")
-
-		if err != nil {
-			return err
-		}
-		return c.Stream(http.StatusOK, "audio/mpeg", f)
-	})
+	e.GET("/stream", controller.StreamAudio)
 
 	e.Logger.Fatal(e.Start(port))
 }

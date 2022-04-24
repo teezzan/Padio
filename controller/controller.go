@@ -1,29 +1,36 @@
 package controller
 
 import (
+	"encoding/binary"
 	"net/http"
-	"os"
 
 	"github.com/labstack/echo/v4"
 )
+
+const sampleRate = 44100
+const seconds = 2
+
+var buffer = make([]float32, sampleRate*seconds)
 
 func SayHelloWorld(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello, World!")
 }
 
-func StreamAudio(c echo.Context) error {
-	// c.Response().Header().Set(echo.HeaderContentType, "audio/mpeg")
-	// c.Response().WriteHeader(http.StatusOK)
-
-	// f, err := os.Open("../static/2.mp3")
-	// if err != nil {
-	// 	return err
-	// }
-	// return c.Stream(http.StatusOK, "audio/mpeg", f)
-
-	f, err := os.Open("../static/cores.png")
-	if err != nil {
-		return err
+func StreamAudio(c echo.Context) {
+	w := c.Response().Writer
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		panic("expected http.ResponseWriter to be an http.Flusher")
 	}
-	return c.Stream(http.StatusOK, "image/png", f)
+
+	w.Header().Set("Connection", "Keep-Alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	w.Header().Set("Content-Type", "audio/wave")
+	for {
+		binary.Write(w, binary.BigEndian, &buffer)
+		flusher.Flush() // Trigger "chunked" encoding and send a chunk...
+
+	}
 }
