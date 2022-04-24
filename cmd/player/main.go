@@ -12,6 +12,7 @@ import (
 
 type Queue struct {
 	streamers []beep.Streamer
+	playing   chan bool
 }
 
 func (q *Queue) Add(streamers ...beep.Streamer) {
@@ -25,6 +26,7 @@ func (q *Queue) Stream(samples [][2]float64) (n int, ok bool) {
 	for filled < len(samples) {
 		// There are no streamers in the queue, so we stream silence.
 		if len(q.streamers) == 0 {
+			q.playing <- false
 			for i := range samples[filled:] {
 				samples[i][0] = 0
 				samples[i][1] = 0
@@ -38,6 +40,9 @@ func (q *Queue) Stream(samples [][2]float64) (n int, ok bool) {
 		// the next streamer.
 		if !ok {
 			q.streamers = q.streamers[1:]
+			q.playing <- false
+		} else {
+			q.playing <- true
 		}
 		// We update the number of filled samples.
 		filled += n
@@ -48,34 +53,35 @@ func (q *Queue) Stream(samples [][2]float64) (n int, ok bool) {
 func (q *Queue) Err() error {
 	return nil
 }
+func (q *Queue) Status() bool {
+	return q.playing
+}
 
 func main() {
 	done := make(chan bool)
+
 	sr := beep.SampleRate(44100)
 	speaker.Init(sr, sr.N(time.Second/10))
 
 	var queue Queue
 	// A zero Queue is an empty Queue.
 
-	speaker.Play(beep.Seq(&queue, beep.Callback(func() {
-		done <- true
-	})))
-	GetNextAudio(&queue, sr,3)
+	speaker.Play(beep.Seq(&queue))
+	GetNextAudio(&queue, sr, 3)
 
 	for {
 		select {
-		case <-done:
+		case <-queue.playing:
 			fmt.Println("Done")
 			GetNextAudio(&queue, sr, 2)
 		case <-time.After(time.Second):
-			fmt.Println("")
 		}
 	}
 }
 
 func GetNextAudio(queue *Queue, sr beep.SampleRate, num int) {
 
-	name := fmt.Sprintf("../../static/%d.mp3", num)
+	name := fmt.Sprintf("static/%d.mp3", num)
 
 	// Open the file on the disk.
 	f, err := os.Open(name)
