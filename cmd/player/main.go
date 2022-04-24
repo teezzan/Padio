@@ -70,7 +70,6 @@ func main() {
 	speaker.Init(sr, sr.N(time.Second/10))
 
 	speaker.Play(beep.Seq(&queue))
-	_ = QueueAndPlay(&queue, sr)
 
 	for {
 
