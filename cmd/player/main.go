@@ -50,14 +50,30 @@ func (q *Queue) Err() error {
 }
 
 func main() {
+	done := make(chan bool)
+
 	sr := beep.SampleRate(44100)
 	speaker.Init(sr, sr.N(time.Second/10))
 
 	// A zero Queue is an empty Queue.
 	var queue Queue
-	speaker.Play(&queue)
+
+	speaker.Play(beep.Seq(&queue, beep.Callback(func() {
+		done <- true
+	})))
+
 	GetNextAudio(queue, sr)
-	select {}
+
+	for {
+		select {
+		case <-done:
+			return
+		case <-time.After(time.Second):
+			speaker.Lock()
+			fmt.Println("works!")
+			speaker.Unlock()
+		}
+	}
 
 }
 
@@ -88,4 +104,5 @@ func GetNextAudio(queue Queue, sr beep.SampleRate) {
 	speaker.Lock()
 	queue.Add(resampled)
 	speaker.Unlock()
+	fmt.Print("Added Successfully!")
 }
