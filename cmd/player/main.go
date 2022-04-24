@@ -12,6 +12,7 @@ import (
 )
 
 var LoadingInProgress bool = false
+var StaticDir = "static"
 
 type Queue struct {
 	streamers []beep.Streamer
@@ -69,20 +70,17 @@ func main() {
 	speaker.Init(sr, sr.N(time.Second/10))
 
 	speaker.Play(beep.Seq(&queue))
+	_ = QueueAndPlay(&queue, sr)
 
 	for {
 
 		select {
 		case i := <-queue.playing:
-			fmt.Println("Status i ", i)
-			if !i && !LoadingInProgress {
+			load := !i && !LoadingInProgress
+			if load {
 				LoadingInProgress = true
-				_ = QueueAndPlay(&queue, sr)
-				// if err != nil {
+				QueueAndPlay(&queue, sr)
 				LoadingInProgress = false
-				// } else {
-				// 	LoadingInProgress = true
-				// }
 			}
 		default:
 			fmt.Print("")
@@ -91,7 +89,7 @@ func main() {
 }
 
 func QueueAndPlay(queue *Queue, sr beep.SampleRate) error {
-	f, err := os.Open("static")
+	f, err := os.Open(StaticDir)
 
 	if err != nil {
 		fmt.Println(err)
@@ -105,7 +103,7 @@ func QueueAndPlay(queue *Queue, sr beep.SampleRate) error {
 	}
 	randomFile := files[rand.Intn(len(files))]
 	fmt.Println(randomFile.Name())
-	return PlayNextAudio(queue, sr, fmt.Sprintf("static/%s", randomFile.Name()))
+	return PlayNextAudio(queue, sr, fmt.Sprintf("%s/%s", StaticDir, randomFile.Name()))
 }
 
 func PlayNextAudio(queue *Queue, sr beep.SampleRate, name string) error {
