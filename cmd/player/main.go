@@ -60,21 +60,22 @@ func main() {
 	speaker.Play(beep.Seq(&queue, beep.Callback(func() {
 		done <- true
 	})))
-	GetNextAudio(&queue, sr)
+	GetNextAudio(&queue, sr,3)
 
 	for {
 		select {
 		case <-done:
 			fmt.Println("Done")
-			GetNextAudio(&queue, sr)
+			GetNextAudio(&queue, sr, 2)
 		case <-time.After(time.Second):
-			// fmt.Println("T")
+			fmt.Println("")
 		}
 	}
 }
 
-func GetNextAudio(queue *Queue, sr beep.SampleRate) {
-	name := "static/3.mp3"
+func GetNextAudio(queue *Queue, sr beep.SampleRate, num int) {
+
+	name := fmt.Sprintf("../../static/%d.mp3", num)
 
 	// Open the file on the disk.
 	f, err := os.Open(name)
