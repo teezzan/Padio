@@ -51,36 +51,30 @@ func (q *Queue) Err() error {
 
 func main() {
 	done := make(chan bool)
-
 	sr := beep.SampleRate(44100)
 	speaker.Init(sr, sr.N(time.Second/10))
 
-	// A zero Queue is an empty Queue.
 	var queue Queue
+	// A zero Queue is an empty Queue.
 
 	speaker.Play(beep.Seq(&queue, beep.Callback(func() {
 		done <- true
 	})))
-
-	GetNextAudio(queue, sr)
+	GetNextAudio(&queue, sr)
 
 	for {
 		select {
 		case <-done:
-			return
+			fmt.Println("Done")
+			GetNextAudio(&queue, sr)
 		case <-time.After(time.Second):
-			speaker.Lock()
-			fmt.Println("works!")
-			speaker.Unlock()
+			// fmt.Println("T")
 		}
 	}
-
 }
 
-func GetNextAudio(queue Queue, sr beep.SampleRate) {
-	var name string
-	fmt.Print("Type an MP3 file name: ")
-	fmt.Scanln(&name)
+func GetNextAudio(queue *Queue, sr beep.SampleRate) {
+	name := "static/3.mp3"
 
 	// Open the file on the disk.
 	f, err := os.Open(name)
