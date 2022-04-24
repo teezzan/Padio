@@ -15,8 +15,12 @@ build: ## Build application binaries
 	go build -race -o ./bin/server ./cmd/server
 
 .PHONY: run
-run: ## run application binaries
+run: ## run server application binaries
 	go run ./cmd/server
+
+.PHONY: run-player
+run-player: ## run player application binaries
+	go run ./cmd/player
 
 .PHONY: mod
 mod: ## Ensured Go package dependencies
