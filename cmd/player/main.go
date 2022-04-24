@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/speaker"
 )
+
+var LoadingInProgress bool = false
 
 type Queue struct {
 	streamers []beep.Streamer
@@ -44,7 +47,7 @@ func (q *Queue) Stream(samples [][2]float64) (n int, ok bool) {
 		// the next streamer.
 		if !ok {
 			q.streamers = q.streamers[1:]
-			// q.playing <- false
+			q.playing <- false
 		} else {
 			q.playing <- true
 		}
@@ -59,25 +62,27 @@ func (q *Queue) Err() error {
 }
 
 func main() {
-	// done := make(chan bool, 5)
 	var queue Queue
 	queue.Init()
 
 	sr := beep.SampleRate(44100)
 	speaker.Init(sr, sr.N(time.Second/10))
 
-	// A zero Queue is an empty Queue.
-
 	speaker.Play(beep.Seq(&queue))
-	GetNextAudio(&queue, sr, 3)
 
 	for {
 
 		select {
 		case i := <-queue.playing:
-			fmt.Println("Done ", i)
-			if !i {
-				GetNextAudio(&queue, sr, 2)
+			fmt.Println("Status i ", i)
+			if !i && !LoadingInProgress {
+				LoadingInProgress = true
+				_ = QueueAndPlay(&queue, sr)
+				// if err != nil {
+				LoadingInProgress = false
+				// } else {
+				// 	LoadingInProgress = true
+				// }
 			}
 		default:
 			fmt.Print("")
@@ -85,22 +90,38 @@ func main() {
 	}
 }
 
-func GetNextAudio(queue *Queue, sr beep.SampleRate, num int) {
+func QueueAndPlay(queue *Queue, sr beep.SampleRate) error {
+	f, err := os.Open("static")
 
-	name := fmt.Sprintf("static/%d.mp3", num)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	files, err := f.Readdir(0)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	randomFile := files[rand.Intn(len(files))]
+	fmt.Println(randomFile.Name())
+	return PlayNextAudio(queue, sr, fmt.Sprintf("static/%s", randomFile.Name()))
+}
+
+func PlayNextAudio(queue *Queue, sr beep.SampleRate, name string) error {
 
 	// Open the file on the disk.
 	f, err := os.Open(name)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 
 	// Decode it.
 	streamer, format, err := mp3.Decode(f)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 
 	// The speaker's sample rate is fixed at 44100. Therefore, we need to
@@ -112,4 +133,5 @@ func GetNextAudio(queue *Queue, sr beep.SampleRate, num int) {
 	queue.Add(resampled)
 	speaker.Unlock()
 	fmt.Print("Added Successfully!")
+	return nil
 }
