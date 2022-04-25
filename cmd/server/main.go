@@ -1,26 +1,40 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/labstack/echo/v4"
-	"github.com/teezzan/padio/config"
-	"github.com/teezzan/padio/controller"
+	"encoding/binary"
+	"net/http"
 )
 
+const sampleRate = 44100
+const seconds = 2
+
 func main() {
-	config, err := config.GetConfig()
+
+	buffer := make([]float32, sampleRate*seconds)
+
+	http.HandleFunc("/audio", func(w http.ResponseWriter, r *http.Request) {
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			panic("expected http.ResponseWriter to be an http.Flusher")
+		}
+
+		w.Header().Set("Connection", "Keep-Alive")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Transfer-Encoding", "chunked")
+		w.Header().Set("Content-Type", "audio/wave")
+		for {
+			binary.Write(w, binary.BigEndian, &buffer)
+			flusher.Flush() // Trigger "chunked" encoding and send a chunk...
+			return
+		}
+	})
+
+	http.ListenAndServe(":8080", nil)
+}
+
+func chk(err error) {
 	if err != nil {
-		panic(fmt.Sprintf("failed to load config: %v", err))
+		panic(err)
 	}
-	port := fmt.Sprintf(":%d", config.HTTP.Port)
-	e := echo.New()
-
-	e.Static("/audio", "static")
-
-	e.GET("/", controller.SayHelloWorld)
-
-	e.GET("/stream", controller.StreamAudio)
-
-	e.Logger.Fatal(e.Start(port))
 }
