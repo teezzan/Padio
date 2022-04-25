@@ -14,9 +14,9 @@ import (
 
 var LoadingInProgress bool = false
 var StaticDir = "static"
+var queue player.Queue
 
-func init() {
-	var queue player.Queue
+func Init() {
 	queue.Init()
 
 	sr := beep.SampleRate(44100)
