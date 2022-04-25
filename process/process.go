@@ -25,12 +25,15 @@ func Init() {
 	speaker.Play(beep.Seq(&queue))
 
 	for {
+		buff := queue.BufferValue()
+		// if buff != nil {
+		// 	fmt.Println("0 :", buff[0])
+		// 	fmt.Println("1 :", buff[1])
+		// }
 
 		select {
 		case i := <-queue.Playing:
-			queue.BufferValue()
-			// fmt.Println("0 :", buff)
-			// fmt.Println("1 :", buff[1])
+
 			load := !i && !LoadingInProgress
 			if load {
 				LoadingInProgress = true
