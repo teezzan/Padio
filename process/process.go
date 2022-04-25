@@ -14,30 +14,24 @@ import (
 
 var LoadingInProgress bool = false
 var StaticDir = "static"
-var queue player.Queue
+var Queue player.Queue
 
 func Init() {
-	queue.Init()
+	Queue.Init()
 
 	sr := beep.SampleRate(44100)
 	speaker.Init(sr, sr.N(time.Second/10))
 
-	speaker.Play(beep.Seq(&queue))
+	speaker.Play(beep.Seq(&Queue))
 
 	for {
-		buff := queue.BufferValue()
-		// if buff != nil {
-		// 	fmt.Println("0 :", buff[0])
-		// 	fmt.Println("1 :", buff[1])
-		// }
-
 		select {
-		case i := <-queue.Playing:
+		case i := <-Queue.Playing:
 
 			load := !i && !LoadingInProgress
 			if load {
 				LoadingInProgress = true
-				QueueAndPlay(&queue, sr)
+				QueueAndPlay(&Queue, sr)
 				LoadingInProgress = false
 			}
 		default:
