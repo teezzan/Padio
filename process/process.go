@@ -53,6 +53,7 @@ func QueueAndPlay(queue *player.Queue, sr beep.SampleRate) error {
 		fmt.Println(err)
 		return err
 	}
+	rand.Seed(time.Now().UnixNano())
 	randomFile := files[rand.Intn(len(files))]
 	fmt.Println(randomFile.Name())
 	return PlayNextAudio(queue, sr, fmt.Sprintf("%s/%s", StaticDir, randomFile.Name()))
