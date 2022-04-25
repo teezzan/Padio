@@ -18,10 +18,6 @@ build: ## Build application binaries
 run: ## run server application binaries
 	go run ./cmd/server
 
-.PHONY: run-player
-run-player: ## run player application binaries
-	go run ./cmd/player
-
 .PHONY: mod
 mod: ## Ensured Go package dependencies
 	go mod tidy
