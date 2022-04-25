@@ -28,6 +28,9 @@ func Init() {
 
 		select {
 		case i := <-queue.Playing:
+			queue.BufferValue()
+			// fmt.Println("0 :", buff)
+			// fmt.Println("1 :", buff[1])
 			load := !i && !LoadingInProgress
 			if load {
 				LoadingInProgress = true
