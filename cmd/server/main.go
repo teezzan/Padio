@@ -16,7 +16,6 @@ func main() {
 	go process.Init()
 
 	http.HandleFunc("/", controller.AudioHandler)
-	// http.HandleFunc("/audio", controller.AudioHandler)
 
 	fmt.Println("Listening...")
 	log.Fatal(http.ListenAndServe(Port, nil))
