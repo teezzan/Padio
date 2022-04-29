@@ -31,7 +31,7 @@ func Init() {
 			load := !i && !LoadingInProgress
 			if load {
 				LoadingInProgress = true
-				// QueueAndPlay(&Queue, sr)
+				QueueAndPlay(&Queue, sr)
 				LoadingInProgress = false
 			}
 		default:

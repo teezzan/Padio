@@ -29,11 +29,12 @@ func AudioHandler(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 
-		for t := range ticker.C {
+		for range ticker.C {
 			buff := queue.BufferValue()
 			binary.Write(w, binary.BigEndian, buff)
 
-			fmt.Println("Tick at", t)
+			fmt.Println("buff at", buff)
+
 			flusher.Flush()
 		}
 	}()
